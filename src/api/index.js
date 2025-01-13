@@ -22,8 +22,8 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response.status === '401') {
-      localStorage.removeItem('access-token')
+    if (error.response.status === 401) {
+      localStorage.removeItem('access_token')
       setTimeout(() => location.reload(), 3000)
     }
     return Promise.reject(error)
