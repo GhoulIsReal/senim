@@ -4,6 +4,7 @@ import EmailIcon from './icons/EmailIcon.vue'
 import PasswordIcon from './icons/PasswordIcon.vue'
 import { InputGroup, InputGroupAddon, InputText, Password, Button } from 'primevue'
 import { ref } from 'vue'
+import KmgLogoIcon from './icons/KmgLogoIcon.vue'
 
 const email = ref('')
 const password = ref('')
@@ -26,6 +27,7 @@ const handleLogin = async () => {
 
 <template>
   <form class="login-form" @submit.prevent="handleLogin">
+    <KmgLogoIcon />
     <InputGroup>
       <InputGroupAddon>
         <EmailIcon />

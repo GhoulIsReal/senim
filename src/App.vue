@@ -1,16 +1,52 @@
 <script setup>
-import { Button, Column, DataTable } from 'primevue'
+import { Button, Column, DataTable, Select, Tag } from 'primevue'
 import { onMounted, ref } from 'vue'
 import LoginItem from './components/LoginItem.vue'
-import { getTable } from './api'
+import { downloadFile, getTable } from './api'
+import KmgLogoIcon from './components/icons/KmgLogoIcon.vue'
 
 const isAuthorized = ref(Boolean(localStorage.getItem('access_token')))
-const tableData = ref([])
+const tableRows = ref([])
+
+const tableHeadings = [
+  { key: 'user_name', label: 'Отправитель' },
+  { key: 'iin', label: 'ИИН' },
+  { key: 'work_place', label: 'Место работы' },
+  { key: 'telephone_number', label: 'Телефон' },
+  { key: 'appeal_text', label: 'Обращение' },
+  { key: 'to_whom', label: 'Получатель' },
+  { key: 'status', label: 'Статус' },
+  { key: 'lang', label: 'Язык' },
+  { key: 'file_name', label: 'Файл' },
+]
+
+const filters = ref({
+  status: { value: null },
+  lang: { value: null },
+})
+const statuses = ref(['Новая', 'В работе', 'Исполнено', 'Отклонено'])
+const langs = ref(['kaz', 'ru', 'en'])
 
 const handleTable = async () => {
   try {
     const { data } = await getTable()
-    tableData.value = data
+    tableRows.value = data
+  } catch (error) {
+    alert(error)
+  }
+}
+
+const handleFileDownload = async (filename) => {
+  try {
+    const { data } = await downloadFile(filename)
+    if (data && data instanceof Blob) {
+      const a = document.createElement('a')
+      const url = URL.createObjectURL(data)
+      a.href = url
+      a.download = filename
+      a.click()
+      window.URL.revokeObjectURL(url)
+    }
   } catch (error) {
     alert(error)
   }
@@ -30,17 +66,65 @@ onMounted(() => {
   <LoginItem v-if="!isAuthorized" />
   <div v-else class="main-content">
     <header>
-      <h2>Senim</h2>
+      <div class="logo-holder">
+        <h2>KMG-Senim</h2>
+        <KmgLogoIcon />
+      </div>
       <Button @click="handleLogout">Выйти</Button>
     </header>
     <div class="table-container">
-      <DataTable :value="tableData" :table-style="{ height: '100%' }" scrollHeight="flex">
+      <DataTable
+        v-model:filters="filters"
+        :value="tableRows"
+        :table-style="{ maxHeight: '100%' }"
+        scrollHeight="flex"
+        filterDisplay="menu"
+      >
         <Column
-          v-for="(columnValue, columnKey) of tableData[0]"
-          :key="columnKey"
-          :field="columnKey"
-          :header="columnKey"
-        ></Column>
+          v-for="heading in tableHeadings"
+          :key="heading.key"
+          :field="heading.key"
+          :header="heading.label"
+          :showFilterMatchModes="false"
+          :showApplyButton="false"
+        >
+          <template #body="slotProps" v-if="heading.key === 'file_name'">
+            <a
+              v-if="slotProps.data[heading.key]"
+              @click="handleFileDownload(slotProps.data[heading.key])"
+              >Скачать</a
+            >
+          </template>
+          <template
+            v-if="['status', 'lang'].includes(heading.key)"
+            #filter="{ filterModel, filterCallback }"
+          >
+            <Select
+              v-if="heading.key === 'status'"
+              v-model="filterModel.value"
+              @change="filterCallback()"
+              :options="statuses"
+              placeholder="Выберите статус"
+              style="min-width: 12rem"
+            >
+              <template #option="slotProps">
+                <Tag :value="slotProps.option" />
+              </template>
+            </Select>
+            <Select
+              v-if="heading.key === 'lang'"
+              v-model="filterModel.value"
+              @change="filterCallback()"
+              :options="langs"
+              placeholder="Выберите язык"
+              style="min-width: 12rem"
+            >
+              <template #option="slotProps">
+                <Tag :value="slotProps.option" />
+              </template>
+            </Select>
+          </template>
+        </Column>
       </DataTable>
     </div>
   </div>
@@ -63,6 +147,12 @@ header {
   height: 100%;
 }
 
+.logo-holder {
+  display: flex;
+  align-items: center;
+  column-gap: 30px;
+}
+
 .table-container {
   height: calc(100% - 56px);
 }
@@ -70,6 +160,10 @@ header {
 .table-container > div,
 .table-container :deep(.p-datatable-table-container) {
   height: 100%;
+}
+
+.table-container :deep(.p-datatable-table-container) a {
+  cursor: pointer;
 }
 
 .logo {

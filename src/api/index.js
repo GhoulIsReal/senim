@@ -37,3 +37,7 @@ export const signIn = async (data) => {
 export const getTable = async () => {
   return await api.get('/rest/v1/kmg_senim?select=*')
 }
+
+export const downloadFile = async (filename) => {
+  return await api.get(`/storage/v1/object/testmb/${filename}`, { responseType: 'blob' })
+}
