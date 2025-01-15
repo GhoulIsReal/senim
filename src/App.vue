@@ -1,12 +1,14 @@
 <script setup>
-import { Button, Column, DataTable, Select, Tag } from 'primevue'
+import { Button, Column, DataTable, Dialog, Select, Tag } from 'primevue'
 import { onMounted, ref } from 'vue'
 import LoginItem from './components/LoginItem.vue'
-import { downloadFile, getTable } from './api'
+import { downloadFile, editCell, getTable } from './api'
 import KmgLogoIcon from './components/icons/KmgLogoIcon.vue'
 
 const isAuthorized = ref(Boolean(localStorage.getItem('access_token')))
 const tableRows = ref([])
+const isPreviewVisible = ref(false)
+const previewImageUrl = ref('')
 
 const tableHeadings = [
   { key: 'user_name', label: 'Отправитель' },
@@ -36,6 +38,32 @@ const handleTable = async () => {
   }
 }
 
+const handleCellEdit = async (row) => {
+  try {
+    const params = {
+      id: `eq.${row.data.id}`,
+    }
+    await editCell(params, { status: row.newData.status })
+    await handleTable()
+  } catch (error) {
+    alert(error)
+  }
+}
+
+const handlePreview = async (filename) => {
+  try {
+    const { data } = await downloadFile(filename)
+    if (data && data instanceof Blob) {
+      const url = URL.createObjectURL(data)
+      previewImageUrl.value = url
+      isPreviewVisible.value = true
+      setTimeout(() => URL.revokeObjectURL(url))
+    }
+  } catch (error) {
+    alert(error)
+  }
+}
+
 const handleFileDownload = async (filename) => {
   try {
     const { data } = await downloadFile(filename)
@@ -45,7 +73,7 @@ const handleFileDownload = async (filename) => {
       a.href = url
       a.download = filename
       a.click()
-      window.URL.revokeObjectURL(url)
+      URL.revokeObjectURL(url)
     }
   } catch (error) {
     alert(error)
@@ -79,6 +107,8 @@ onMounted(() => {
         :table-style="{ maxHeight: '100%' }"
         scrollHeight="flex"
         filterDisplay="menu"
+        editMode="cell"
+        @cell-edit-complete="handleCellEdit"
       >
         <Column
           v-for="heading in tableHeadings"
@@ -87,13 +117,13 @@ onMounted(() => {
           :header="heading.label"
           :showFilterMatchModes="false"
           :showApplyButton="false"
+          :rowEditor="true"
         >
-          <template #body="slotProps" v-if="heading.key === 'file_name'">
-            <a
-              v-if="slotProps.data[heading.key]"
-              @click="handleFileDownload(slotProps.data[heading.key])"
-              >Скачать</a
-            >
+          <template #body="{ data }" v-if="heading.key === 'file_name'">
+            <template v-if="data[heading.key]">
+              <a @click="handlePreview(data[heading.key])" style="display: block">Просмотр</a>
+              <a @click="handleFileDownload(data[heading.key])" style="display: block">Скачать</a>
+            </template>
           </template>
           <template
             v-if="['status', 'lang'].includes(heading.key)"
@@ -124,9 +154,25 @@ onMounted(() => {
               </template>
             </Select>
           </template>
+          <template v-if="heading.key === 'status'" #editor="{ data, field }">
+            <Select
+              v-if="heading.key === 'status'"
+              v-model="data[field]"
+              :options="statuses"
+              placeholder="Выберите статус"
+              style="min-width: 8rem"
+            >
+              <template #option="slotProps">
+                <Tag :value="slotProps.option" />
+              </template>
+            </Select>
+          </template>
         </Column>
       </DataTable>
     </div>
+    <Dialog v-model:visible="isPreviewVisible" style="width: 75vw" modal class="p-fluid">
+      <img :src="previewImageUrl" alt="Preview" style="width: 100%; height: auto; display: block" />
+    </Dialog>
   </div>
 </template>
 

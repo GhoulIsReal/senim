@@ -38,6 +38,10 @@ export const getTable = async () => {
   return await api.get('/rest/v1/kmg_senim?select=*')
 }
 
+export const editCell = async (rowParams, cell) => {
+  return await api.patch('/rest/v1/kmg_senim', cell, { params: rowParams })
+}
+
 export const downloadFile = async (filename) => {
   return await api.get(`/storage/v1/object/testmb/${filename}`, { responseType: 'blob' })
 }
