@@ -170,8 +170,14 @@ onMounted(() => {
         </Column>
       </DataTable>
     </div>
-    <Dialog v-model:visible="isPreviewVisible" style="width: 75vw" modal class="p-fluid">
-      <img :src="previewImageUrl" alt="Preview" style="width: 100%; height: auto; display: block" />
+    <Dialog
+      v-model:visible="isPreviewVisible"
+      contentStyle="display: flex; justify-content: center;"
+      style="width: 75vw; height: 100%"
+      modal
+      class="p-fluid"
+    >
+      <img :src="previewImageUrl" alt="Preview" style="height: 100%; width: auto; display: block" />
     </Dialog>
   </div>
 </template>
