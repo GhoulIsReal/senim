@@ -20,6 +20,7 @@ const tableHeadings = [
   { key: 'status', label: 'Статус' },
   { key: 'lang', label: 'Язык' },
   { key: 'file_name', label: 'Файл' },
+  { key: 'field_1', label: 'Поле 1' },
 ]
 
 const filters = ref({
