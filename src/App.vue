@@ -16,11 +16,12 @@ const tableHeadings = [
   { key: 'work_place', label: 'Место работы' },
   { key: 'telephone_number', label: 'Телефон' },
   { key: 'appeal_text', label: 'Обращение' },
+  { key: 'category', label: 'Категория' },
   { key: 'to_whom', label: 'Получатель' },
   { key: 'status', label: 'Статус' },
   { key: 'lang', label: 'Язык' },
   { key: 'file_name', label: 'Файл' },
-  { key: 'category', label: 'Категория' },
+ 
 ]
 
 const filters = ref({
