@@ -20,7 +20,7 @@ const tableHeadings = [
   { key: 'status', label: 'Статус' },
   { key: 'lang', label: 'Язык' },
   { key: 'file_name', label: 'Файл' },
-  { key: 'field_1', label: 'Поле 1' },
+  { key: 'category', label: 'Категория' },
 ]
 
 const filters = ref({
@@ -111,21 +111,24 @@ onMounted(() => {
         editMode="cell"
         @cell-edit-complete="handleCellEdit"
       >
-        <Column
+                <Column
           v-for="heading in tableHeadings"
           :key="heading.key"
           :field="heading.key"
           :header="heading.label"
           :showFilterMatchModes="false"
           :showApplyButton="false"
-          :rowEditor="true"
+          :rowEditor="heading.key === 'status'"
         >
+          <!-- Body only for file_name -->
           <template #body="{ data }" v-if="heading.key === 'file_name'">
             <template v-if="data[heading.key]">
               <a @click="handlePreview(data[heading.key])" style="display: block">Просмотр</a>
               <a @click="handleFileDownload(data[heading.key])" style="display: block">Скачать</a>
             </template>
           </template>
+
+          <!-- Filter slot for status/lang -->
           <template
             v-if="['status', 'lang'].includes(heading.key)"
             #filter="{ filterModel, filterCallback }"
@@ -155,9 +158,10 @@ onMounted(() => {
               </template>
             </Select>
           </template>
+
+          <!-- Editor only for status -->
           <template v-if="heading.key === 'status'" #editor="{ data, field }">
             <Select
-              v-if="heading.key === 'status'"
               v-model="data[field]"
               :options="statuses"
               placeholder="Выберите статус"
@@ -169,6 +173,7 @@ onMounted(() => {
             </Select>
           </template>
         </Column>
+
       </DataTable>
     </div>
     <Dialog
